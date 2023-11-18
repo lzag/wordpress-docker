@@ -1,5 +1,10 @@
 services:
   db:
+    deploy:
+      resources:
+        limits:
+          cpus: '0.3'
+          memory: 512M
     image: mysql:8.0
     hostname: db
     restart: unless-stopped
@@ -15,6 +20,11 @@ services:
         timeout: 5s
 
   wordpress:
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 256M
     depends_on: 
       db:
         condition: service_healthy
@@ -31,6 +41,11 @@ services:
       - wordpress:/var/www/html
 
   webserver:
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 256M
     depends_on:
       - wordpress
     image: nginx:1.25.3-alpine
