@@ -1,29 +1,32 @@
-version: '3'
-
 services:
   db:
     image: mysql:8.0
-    container_name: db
+    hostname: db
     restart: unless-stopped
     env_file: .env
     environment:
-      - MYSQL_DATABASE=wordpress
+      - MYSQL_DATABASE=$MYSQL_DB
     volumes: 
       - dbdata:/var/lib/mysql
     command: '--default-authentication-plugin=mysql_native_password'
+    healthcheck:
+        test: ["CMD", "mysqladmin", "ping", "-p${MYSQL_ROOT_PASSWORD}"]
+        retries: 3
+        timeout: 5s
 
   wordpress:
     depends_on: 
-      - db
-    image: wordpress:6.3.1-fpm-alpine
-    container_name: wordpress
+      db:
+        condition: service_healthy
+    image: wordpress:6.4.1-fpm-alpine
+    hostname: wordpress
     restart: unless-stopped
     env_file: .env
     environment:
       - WORDPRESS_DB_HOST=db:3306
       - WORDPRESS_DB_USER=$MYSQL_USER
       - WORDPRESS_DB_PASSWORD=$MYSQL_PASSWORD
-      - WORDPRESS_DB_NAME=wordpress
+      - WORDPRESS_DB_NAME=$MYSQL_DB
     volumes:
       - wordpress:/var/www/html
 
@@ -31,7 +34,7 @@ services:
     depends_on:
       - wordpress
     image: nginx:1.25.3-alpine
-    container_name: webserver
+    hostname: webserver
     restart: unless-stopped
     ports:
       - "80:80"
@@ -47,7 +50,7 @@ services:
     depends_on:
       - webserver
     image: certbot/certbot
-    container_name: certbot
+    hostname: certbot
     volumes:
       - certbot-etc:/etc/letsencrypt
       - wordpress:/var/www/html
