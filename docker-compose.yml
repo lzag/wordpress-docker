@@ -4,7 +4,10 @@ services:
       resources:
         limits:
           cpus: '0.3'
-          memory: 512M
+          memory: 400M
+        reservations:
+          cpus: '0.25'
+          memory: 128M
     image: mysql:8.0
     hostname: db
     restart: unless-stopped
@@ -13,6 +16,7 @@ services:
       - MYSQL_DATABASE=$MYSQL_DB
     volumes: 
       - dbdata:/var/lib/mysql
+      - ./mysql-conf:/etc/mysql/conf.d
     command: '--default-authentication-plugin=mysql_native_password'
     healthcheck:
         test: ["CMD", "mysqladmin", "ping", "-p${MYSQL_ROOT_PASSWORD}"]
@@ -23,8 +27,11 @@ services:
     deploy:
       resources:
         limits:
+          cpus: '0.3'
+          memory: 128M
+        reservations:
           cpus: '0.25'
-          memory: 256M
+          memory: 64M
     depends_on: 
       db:
         condition: service_healthy
@@ -44,8 +51,11 @@ services:
     deploy:
       resources:
         limits:
+          cpus: '0.3'
+          memory: 128M
+        reservations:
           cpus: '0.25'
-          memory: 256M
+          memory: 64M
     depends_on:
       - wordpress
     image: nginx:1.25.3-alpine
